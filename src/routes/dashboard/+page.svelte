@@ -66,7 +66,7 @@
 
   async function logout() {
     document.cookie = 'session=; Max-Age=0; path=/';
-    goto('/login');
+    goto('/');
   }
 
   async function addOrUpdateSchedule() {
