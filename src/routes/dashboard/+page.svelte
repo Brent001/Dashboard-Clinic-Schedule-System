@@ -12,6 +12,7 @@
     date: string;
     time: string;
     message: string;
+    showFullMessage?: boolean; // Add this property to track message expansion
   }
 
   let schedules: Schedule[] = [];
@@ -246,7 +247,21 @@
         <div class="bg-white p-4 rounded-lg shadow-md">
           <h3 class="text-lg font-semibold text-green-600">{schedule.purpose}</h3>
           <p class="text-sm text-gray-600">{schedule.date} at {schedule.time}</p>
-          <p class="text-sm text-gray-500 italic mt-2">"{schedule.message}"</p>
+          <p class="text-sm text-gray-500 italic mt-2" style="white-space: pre-wrap;">
+            {#if schedule.showFullMessage}
+              "{schedule.message}"
+            {:else}
+              "{schedule.message.slice(0, 100)}{schedule.message.length > 100 ? '...' : ''}"
+            {/if}
+          </p>
+          {#if schedule.message.length > 100}
+            <button
+              on:click={() => (schedule.showFullMessage = !schedule.showFullMessage)}
+              class="text-sm text-blue-500 hover:underline focus:outline-none"
+            >
+              {schedule.showFullMessage ? 'Read Less' : 'Read More'}
+            </button>
+          {/if}
           <div class="flex justify-end space-x-2 mt-4">
             <button
               on:click={() => openEditModal(schedule)}
