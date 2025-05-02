@@ -66,7 +66,7 @@
 
   async function logout() {
     document.cookie = 'session=; Max-Age=0; path=/';
-    goto('/');
+    goto('/login');
   }
 
   async function addOrUpdateSchedule() {
@@ -215,6 +215,7 @@
                 id="message"
                 bind:value={newSchedule.message}
                 required
+                rows="4"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
                 placeholder="Enter your message here..."
               ></textarea>
