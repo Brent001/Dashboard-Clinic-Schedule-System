@@ -14,29 +14,31 @@
 
   let logs: Log[] = [];
   let username: string = '';
+  let role: string = ''; // Store the user's role
   let showDropdown: boolean = false;
 
-  // Fetch logs and username from the backend
+  // Fetch logs and session data from the backend
   onMount(async () => {
     try {
       const sessionResponse = await fetch('/api/auth/session');
-      if (sessionResponse.ok) {
-        const sessionData = await sessionResponse.json();
-        username = sessionData.username;
+      if (!sessionResponse.ok) {
+        goto('/'); // Redirect to login page if not authenticated
+        return;
+      }
 
-        const logsResponse = await fetch('/api/logs');
-        if (logsResponse.ok) {
-          logs = await logsResponse.json();
-        } else {
-          console.error('Failed to fetch logs');
-        }
+      const sessionData = await sessionResponse.json();
+      username = sessionData.username;
+      role = sessionData.role; // Fetch the user's role
+
+      const logsResponse = await fetch('/api/logs');
+      if (logsResponse.ok) {
+        logs = await logsResponse.json();
       } else {
-        console.error('User is not authenticated');
-        throw new Error('Not Found');
+        console.error('Failed to fetch logs');
       }
     } catch (error) {
       console.error('Error fetching logs or session data:', error);
-      throw new Error('Not Found');
+      goto('/'); // Redirect to login page on error
     }
   });
 
@@ -102,7 +104,7 @@
 
   async function logout() {
     document.cookie = 'session=; Max-Age=0; path=/';
-    window.location.href = '/';
+    goto('/');
   }
 </script>
 
@@ -111,6 +113,7 @@
   <div class="sticky top-0 z-50">
     <Navbar
       {username}
+      {role}
       {showDropdown}
       toggleDropdown={toggleDropdown}
       logout={logout}
@@ -119,7 +122,9 @@
 
   <!-- Logs Section -->
   <section class="max-w-7xl mx-auto p-6">
-    <h1 class="text-3xl font-bold text-gray-800 mb-6">User Login Logs</h1>
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">
+      {role === 'superadmin' ? 'All User Login Logs' : 'My Login Logs'}
+    </h1>
 
     {#if logs.length > 0}
       <!-- Table for Larger Screens -->

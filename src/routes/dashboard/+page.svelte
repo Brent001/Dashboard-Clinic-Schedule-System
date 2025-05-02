@@ -17,6 +17,7 @@
 
   let schedules: Schedule[] = [];
   let username: string = '';
+  let role: string = ''; // Add a variable to store the user's role
   let newSchedule: Schedule = { id: '', purpose: '', date: '', time: '', message: '' };
   let showForm: boolean = false;
   let editingSchedule: Schedule | null = null; // Track the schedule being edited
@@ -47,12 +48,13 @@
     try {
       const sessionResponse = await fetch(SESSION_API);
       if (!sessionResponse.ok) {
-        goto('/login');
+        goto('/');
         return;
       }
 
       const sessionData = await sessionResponse.json();
       username = sessionData.username;
+      role = sessionData.role; // Fetch the user's role
 
       await fetchSchedules(); // Fetch schedules on mount
     } catch (error) {
@@ -67,7 +69,7 @@
 
   async function logout() {
     document.cookie = 'session=; Max-Age=0; path=/';
-    goto('/login');
+    goto('/');
   }
 
   async function addOrUpdateSchedule() {
@@ -146,6 +148,7 @@
   <!-- Navbar -->
   <Navbar
     {username}
+    {role}
     {showDropdown}
     toggleDropdown={toggleDropdown}
     logout={logout}
@@ -155,6 +158,7 @@
   <div class="max-w-7xl mx-auto p-4 sm:p-6">
     <div class="flex flex-col sm:flex-row justify-between items-center mb-6">
       <h2 class="text-lg sm:text-xl font-semibold text-gray-800 mb-4 sm:mb-0">Announcements</h2>
+
       <button
         on:click={() => {
           editingSchedule = null; // Clear editing state

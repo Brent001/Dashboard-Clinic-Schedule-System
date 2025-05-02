@@ -19,5 +19,12 @@ export async function GET({ cookies }) {
     return new Response(JSON.stringify({ error: 'Invalid session' }), { status: 401 });
   }
 
-  return new Response(JSON.stringify({ username: result[0].username }), { status: 200 });
+  // Include the role in the response
+  return new Response(
+    JSON.stringify({
+      username: result[0].username,
+      role: result[0].role, // Add the role field
+    }),
+    { status: 200 }
+  );
 }

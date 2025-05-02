@@ -1,8 +1,9 @@
 <script lang="ts">
   import { fade, slide } from 'svelte/transition';
 
-  export let username: string = '';
-  export let showDropdown: boolean = false;
+  export let username: string;
+  export let role: string; // Accept the role as a prop
+  export let showDropdown: boolean;
   export let toggleDropdown: () => void;
   export let logout: () => void;
 
@@ -57,11 +58,16 @@
               Dashboard
             </a>
             <a href="/dashboard/logs" class="block px-4 py-2 text-gray-600 hover:bg-green-100 hover:text-green-800">
-              Logs
+              {role === 'superadmin' ? 'All User Logs' : role === 'user' ? 'My Logs' : 'Logs'}
             </a>
-            <a href="/dashboard/register" class="block px-4 py-2 text-gray-600 hover:bg-green-100 hover:text-green-800">
-              Create New Account
-            </a>
+            {#if role === 'superadmin'}
+              <a href="/dashboard/register" class="block px-4 py-2 text-gray-600 hover:bg-green-100 hover:text-green-800">
+                Create New Account
+              </a>
+              <a href="/dashboard/users" class="block px-4 py-2 text-gray-600 hover:bg-green-100 hover:text-green-800">
+                View All Users
+              </a>
+            {/if}
 
             <!-- Logout Button -->
             <button

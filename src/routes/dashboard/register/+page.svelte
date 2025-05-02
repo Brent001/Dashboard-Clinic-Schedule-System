@@ -1,17 +1,18 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import Navbar from '$lib/components/Navbar.svelte';
 
-  let username = '';
-  let password = '';
-  let confirmPassword = '';
-  let errorMessage = '';
-  let successMessage = '';
-  let showDropdown = false; // Add this state for the hamburger menu
+  export let username: string; // Explicitly type username
+  export let role: string; // Explicitly type role
+
+  let password: string = '';
+  let confirmPassword: string = '';
+  let errorMessage: string = '';
+  let successMessage: string = '';
+  let showDropdown: boolean = false;
 
   function toggleDropdown() {
-    showDropdown = !showDropdown; // Toggle the dropdown state
+    showDropdown = !showDropdown;
   }
 
   async function handleSubmit(event: Event) {
@@ -42,11 +43,12 @@
 </script>
 
 <Navbar 
-  username={username} 
+  {username} 
+  role={role} 
   {showDropdown} 
   toggleDropdown={toggleDropdown} 
   logout={() => goto('/')} 
-/>
+></Navbar>
 
 <div class="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded-md">
   <h1 class="text-2xl font-bold mb-4 text-center">Create Account</h1>
