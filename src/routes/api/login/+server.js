@@ -72,30 +72,40 @@ export async function POST({ request, cookies, getClientAddress }) {
       return new Response(JSON.stringify({ error: 'Invalid credentials' }), { status: 401 });
     }
 
-    // Log user activity
-    const ip = getClientAddress(); // Get client IP address
-    const userAgent = request.headers.get('user-agent'); // Get user agent string
-    const os = detectOS(userAgent); // Detect OS from user agent
-    const time = new Date().toISOString();
-
-    try {
-      await db.insert(logs).values({
-        username,
-        ip,
-        time,
-        os, // Save detected OS
-        browser: userAgent || 'Unknown', // Save user agent string as browser
-      });
-      console.log('User activity logged successfully');
-    } catch (logError) {
-      console.error('Error logging user activity:', logError);
+    // Check if the user is disabled
+    if (result[0].status === 'disable') {
+      console.error('Login attempt for disabled user:', username);
+      return new Response(JSON.stringify({ error: 'Your account is disabled. Please contact the administrator.' }), { status: 403 });
     }
 
-    // Set session cookie (for authentication)
+    // Log user activity (only in development mode)
+    if (process.env.NODE_ENV === 'development') {
+      const ip = getClientAddress(); // Get client IP address
+      const userAgent = request.headers.get('user-agent') || ''; // Provide a default empty string
+      const os = detectOS(userAgent); // Detect OS from user agent
+      const time = new Date().toISOString();
+
+      try {
+        await db.insert(logs).values({
+          username,
+          ip,
+          time,
+          os, // Save detected OS
+          browser: userAgent || 'Unknown', // Save user agent string as browser
+        });
+        console.log('User activity logged successfully');
+      } catch (logError) {
+        console.error('Error logging user activity:', logError);
+      }
+    }
+
+    // Set session cookie
     cookies.set('session', username, {
-      httpOnly: true,
+      httpOnly: true, // Prevents client-side access
       path: '/',
       maxAge: 60 * 60 * 24, // 1 day
+      sameSite: 'lax', // Ensures the cookie is sent with same-site requests
+      secure: process.env.NODE_ENV !== 'development', // Use secure cookies only in production
     });
 
     return new Response(JSON.stringify({ success: true }), { status: 200 });

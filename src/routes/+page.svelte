@@ -25,6 +25,14 @@
         return;
       }
 
+      const data = await response.json();
+
+      // Check if the user is disabled
+      if (data.status === 'disable') {
+        alert('Your account is disabled. Please contact the administrator.');
+        return;
+      }
+
       console.log('Login successful');
       await goto('/dashboard');
     } catch (error) {

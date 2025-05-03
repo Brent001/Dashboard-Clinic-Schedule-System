@@ -3,10 +3,14 @@ import { user } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 
 export async function POST({ request }) {
-  const { username, password } = await request.json();
+  const { username, password, role } = await request.json();
 
-  if (!username || !password) {
-    return new Response(JSON.stringify({ error: 'Username and password are required.' }), { status: 400 });
+  if (!username || !password || !role) {
+    return new Response(JSON.stringify({ error: 'Username, password, and role are required.' }), { status: 400 });
+  }
+
+  if (role !== 'user' && role !== 'superadmin') {
+    return new Response(JSON.stringify({ error: 'Invalid role.' }), { status: 400 });
   }
 
   // Check if the username already exists
@@ -16,7 +20,7 @@ export async function POST({ request }) {
   }
 
   // Insert the new user into the database
-  await db.insert(user).values({ username, password });
+  await db.insert(user).values({ username, password, role });
 
   return new Response(JSON.stringify({ message: 'Account created successfully.' }), { status: 201 });
 }
