@@ -377,8 +377,8 @@
 </main>
 
 {#if showModal}
-  <div class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center">
-    <div class="bg-white p-6 rounded shadow-md w-96">
+  <div class="fixed inset-0 flex items-center justify-center backdrop-blur-sm">
+    <div class="frosted-glass p-6 rounded shadow-md w-96">
       <h2 class="text-xl font-bold mb-4">
         {#if modalType === 'changePassword'} Change Password
         {:else if modalType === 'disableUser'} {selectedUser?.status === 'disable' ? 'Enable User' : 'Disable User'}
@@ -388,24 +388,9 @@
       </h2>
 
       {#if modalType === 'changePassword'}
-        <label class="block mb-2">
-          Old Password:
-          <div class="flex items-center">
-            <input
-              type={showOldPassword ? 'text' : 'password'}
-              value={oldPassword}
-              readonly
-              class="w-full border border-gray-300 rounded px-2 py-1 bg-gray-100 cursor-not-allowed"
-            />
-            <button
-              on:click={() => (showOldPassword = !showOldPassword)}
-              class="ml-2 text-gray-500 hover:text-gray-700 focus:outline-none"
-              aria-label={showOldPassword ? 'Hide old password' : 'Show old password'}
-            >
-              <i class={showOldPassword ? 'fas fa-eye-slash' : 'fas fa-eye'}></i>
-            </button>
-          </div>
-        </label>
+        <p class="mb-4 text-gray-600">
+          Are you sure you want to change the password for user "{selectedUser?.username}"? This action cannot be undone.
+        </p>
         <label class="block mb-2">
           New Password:
           <div class="flex items-center">
@@ -459,24 +444,6 @@
           />
 
           <!-- Password Fields -->
-          <label class="block mb-2">
-            Old Password:
-            <div class="flex items-center">
-              <input
-                type={showOldPassword ? 'text' : 'password'}
-                value={oldPassword}
-                readonly
-                class="w-full border border-gray-300 rounded px-2 py-1 bg-gray-100 cursor-not-allowed"
-              />
-              <button
-                on:click={() => (showOldPassword = !showOldPassword)}
-                class="ml-2 text-gray-500 hover:text-gray-700 focus:outline-none"
-                aria-label={showOldPassword ? 'Hide old password' : 'Show old password'}
-              >
-                <i class={showOldPassword ? 'fas fa-eye-slash' : 'fas fa-eye'}></i>
-              </button>
-            </div>
-          </label>
           <label class="block mb-2">
             New Password:
             <div class="flex items-center">
@@ -555,5 +522,17 @@
   .sticky {
     background-color: #ffffff; /* White background for navbar */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  }
+
+  .backdrop-blur-sm {
+    backdrop-filter: blur(10px); /* Stronger blur effect */
+    background-color: rgba(255, 255, 255, 0.2); /* Light transparent white */
+  }
+
+  .frosted-glass {
+    background: rgba(255, 255, 255, 0.7); /* Semi-transparent white */
+    backdrop-filter: blur(15px); /* Frosted glass effect */
+    border: 1px solid rgba(255, 255, 255, 0.3); /* Subtle border for glass effect */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Soft shadow */
   }
 </style>
