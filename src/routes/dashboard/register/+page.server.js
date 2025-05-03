@@ -7,7 +7,7 @@ export async function load({ cookies }) {
   const session = cookies.get('session');
 
   if (!session) {
-    throw redirect(302, '/login'); // Redirect to login if no session
+    throw redirect(302, '/'); // Redirect to login if no session
   }
 
   // Fetch the user's role from the database
@@ -18,7 +18,7 @@ export async function load({ cookies }) {
     .limit(1);
 
   if (userResult.length === 0) {
-    throw redirect(302, '/login'); // Redirect to login if session is invalid
+    throw redirect(302, '/'); // Redirect to login if session is invalid
   }
 
   const { role } = userResult[0];

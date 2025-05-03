@@ -68,8 +68,25 @@
   }
 
   async function logout() {
-    document.cookie = 'session=; Max-Age=0; path=/';
-    goto('/');
+    try {
+      // Call the logout API
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!response.ok) {
+        console.error('Failed to log out:', await response.text());
+        alert('An error occurred while logging out.');
+        return;
+      }
+
+      // Redirect to the login page
+      goto('/');
+    } catch (error) {
+      console.error('Error during logout:', error);
+      alert('An error occurred while logging out.');
+    }
   }
 
   async function addOrUpdateSchedule() {
