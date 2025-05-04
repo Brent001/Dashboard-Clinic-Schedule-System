@@ -79,24 +79,23 @@ export async function POST({ request, cookies, getClientAddress }) {
     }
 
     // Log user activity (only in development mode)
-    if (process.env.NODE_ENV === 'development') {
-      const ip = getClientAddress(); // Get client IP address
-      const userAgent = request.headers.get('user-agent') || ''; // Provide a default empty string
-      const os = detectOS(userAgent); // Detect OS from user agent
-      const time = new Date().toISOString();
+    const ip = getClientAddress(); // Get client IP address
+    const userAgent = request.headers.get('user-agent') || ''; // Provide a default empty string
+    const os = detectOS(userAgent); // Detect OS from user agent
+    const time = new Date().toISOString();
 
-      try {
-        await db.insert(logs).values({
-          username,
-          ip,
-          time,
-          os, // Save detected OS
-          browser: userAgent || 'Unknown', // Save user agent string as browser
-        });
-        console.log('User activity logged successfully');
-      } catch (logError) {
-        console.error('Error logging user activity:', logError);
-      }
+    try {
+      console.log('Logging user activity:', { username, ip, time, os, browser: userAgent || 'Unknown' }); // Debugging log
+      await db.insert(logs).values({
+        username,
+        ip,
+        time,
+        os, // Save detected OS
+        browser: userAgent || 'Unknown', // Save user agent string as browser
+      });
+      console.log('User activity logged successfully');
+    } catch (logError) {
+      console.error('Error logging user activity:', logError);
     }
 
     // Set session cookie
