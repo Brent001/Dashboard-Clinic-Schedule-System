@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import Navbar from '$lib/components/Navbar.svelte';
+  import Loading from '$lib/components/Loading.svelte'; // Import the Loading component
 
   const SESSION_API = '/api/auth/session';
   const LOGOUT_API = '/api/auth/logout';
@@ -18,6 +19,7 @@
   let username: string = '';
   let role: string = ''; // Store the user's role
   let showDropdown: boolean = false;
+  let isLoading: boolean = true; // Add loading state
 
   // Modal state
   let showModal: boolean = false;
@@ -61,6 +63,8 @@
     } catch (error) {
       console.error('Error fetching session or users:', error);
       goto('/'); // Redirect to login on error
+    } finally {
+      isLoading = false; // Stop loading once data is fetched
     }
   });
 
@@ -195,6 +199,11 @@
   }
 
   async function updateRole(username: string, newRole: string) {
+    const confirmation = window.confirm(
+      `Are you sure you want to change the role of user "${username}" to "${newRole}"?`
+    );
+    if (!confirmation) return; // Stop if the user cancels
+
     try {
       const response = await fetch(`/api/users`, {
         method: 'PATCH',
@@ -215,7 +224,38 @@
     }
   }
 
+  async function deleteUser(username: string) {
+    const confirmation = window.confirm(
+      `Are you sure you want to delete user "${username}"? This action cannot be undone.`
+    );
+    if (!confirmation) return; // Stop if the user cancels
+
+    try {
+      const response = await fetch(`/api/users`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username })
+      });
+
+      if (response.ok) {
+        alert(`User "${username}" deleted successfully`);
+        await fetchUsers();
+      } else {
+        const errorData = await response.json();
+        alert(`Failed to delete user: ${errorData.error}`);
+      }
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      alert('An error occurred while deleting the user.');
+    }
+  }
+
   async function updateStatus(username: string, newStatus: 'enable' | 'disable') {
+    const confirmation = window.confirm(
+      `Are you sure you want to ${newStatus === 'enable' ? 'enable' : 'disable'} user "${username}"?`
+    );
+    if (!confirmation) return; // Stop if the user cancels
+
     try {
       const response = await fetch(`/api/users`, {
         method: 'PATCH',
@@ -277,59 +317,32 @@
     />
   </div>
 
-  <!-- Users Section -->
-  <section class="max-w-7xl mx-auto p-6">
-    <h1 class="text-3xl font-bold text-gray-800 mb-6">Manage Users</h1>
+  <!-- Loading Spinner -->
+  {#if isLoading}
+    <div class="flex justify-center items-center min-h-[50vh]">
+      <Loading />
+    </div>
+  {:else}
+    <!-- Users Section -->
+    <section class="max-w-7xl mx-auto p-6">
+      <h1 class="text-3xl font-bold text-gray-800 mb-6">Manage Users</h1>
 
-    <!-- Search and Filter -->
-    <div class="mb-4">
-      <!-- Desktop Design -->
-      <div class="hidden sm:flex flex-wrap gap-4">
-        <!-- Search Box -->
-        <input
-          type="text"
-          bind:value={searchQuery}
-          placeholder="Search users by username..."
-          class="flex-1 min-w-0 border border-gray-300 rounded px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+      <!-- Search and Filter -->
+      <div class="mb-4">
+        <!-- Desktop Design -->
+        <div class="hidden sm:flex flex-wrap gap-4">
+          <!-- Search Box -->
+          <input
+            type="text"
+            bind:value={searchQuery}
+            placeholder="Search users by username..."
+            class="flex-1 min-w-0 border border-gray-300 rounded px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
 
-        <!-- Filter by Role -->
-        <select
-          bind:value={searchRole}
-          class="w-40 border border-gray-300 rounded px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">All Roles</option>
-          <option value="user">User</option>
-          <option value="superadmin">Superadmin</option>
-        </select>
-
-        <!-- Filter by Status -->
-        <select
-          bind:value={searchStatus}
-          class="w-40 border border-gray-300 rounded px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">All Statuses</option>
-          <option value="enable">Enable</option>
-          <option value="disable">Disable</option>
-        </select>
-      </div>
-
-      <!-- Mobile Design -->
-      <div class="flex sm:hidden flex-col gap-2">
-        <!-- Search Box -->
-        <input
-          type="text"
-          bind:value={searchQuery}
-          placeholder="Search..."
-          class="w-full border border-gray-300 rounded px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-
-        <!-- Dropdowns Container -->
-        <div class="flex gap-2">
           <!-- Filter by Role -->
           <select
             bind:value={searchRole}
-            class="flex-1 border border-gray-300 rounded px-4 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="w-40 border border-gray-300 rounded px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">All Roles</option>
             <option value="user">User</option>
@@ -339,169 +352,203 @@
           <!-- Filter by Status -->
           <select
             bind:value={searchStatus}
-            class="flex-1 border border-gray-300 rounded px-4 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="w-40 border border-gray-300 rounded px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">All Statuses</option>
             <option value="enable">Enable</option>
             <option value="disable">Disable</option>
           </select>
         </div>
-      </div>
-    </div>
 
-    {#if filteredUsers.length > 0}
-      <!-- Table for Larger Screens -->
-      <div class="hidden sm:block relative overflow-x-auto shadow-md sm:rounded-lg">
-        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-          <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-800 dark:text-gray-400">
-            <tr>
-              <th scope="col" class="px-6 py-3">Username</th>
-              <th scope="col" class="px-6 py-3">Role</th>
-              <th scope="col" class="px-6 py-3">Status</th>
-              <th scope="col" class="px-6 py-3">Password</th>
-              <th scope="col" class="px-6 py-3">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {#each filteredUsers as user, i}
-              <tr class={i % 2 === 0 ? 'bg-gray-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-700'}>
-                <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{user.username}</td>
-                <td class="px-6 py-4">
+        <!-- Mobile Design -->
+        <div class="flex sm:hidden flex-col gap-2">
+          <!-- Search Box -->
+          <input
+            type="text"
+            bind:value={searchQuery}
+            placeholder="Search..."
+            class="w-full border border-gray-300 rounded px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+
+          <!-- Dropdowns Container -->
+          <div class="flex gap-2">
+            <!-- Filter by Role -->
+            <select
+              bind:value={searchRole}
+              class="flex-1 border border-gray-300 rounded px-4 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">All Roles</option>
+              <option value="user">User</option>
+              <option value="superadmin">Superadmin</option>
+            </select>
+
+            <!-- Filter by Status -->
+            <select
+              bind:value={searchStatus}
+              class="flex-1 border border-gray-300 rounded px-4 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">All Statuses</option>
+              <option value="enable">Enable</option>
+              <option value="disable">Disable</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {#if filteredUsers.length > 0}
+        <!-- Table for Larger Screens -->
+        <div class="hidden sm:block relative overflow-x-auto shadow-md sm:rounded-lg">
+          <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-800 dark:text-gray-400">
+              <tr>
+                <th scope="col" class="px-6 py-3">Username</th>
+                <th scope="col" class="px-6 py-3">Role</th>
+                <th scope="col" class="px-6 py-3">Status</th>
+                <th scope="col" class="px-6 py-3">Password</th>
+                <th scope="col" class="px-6 py-3">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {#each filteredUsers as user, i}
+                <tr class={i % 2 === 0 ? 'bg-gray-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-700'}>
+                  <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{user.username}</td>
+                  <td class="px-6 py-4">
+                    <select
+                      bind:value={user.role}
+                      on:change={() => updateRole(user.username, user.role)}
+                      class="border border-gray-300 rounded px-1 py-1 text-sm w-28 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="user">User</option>
+                      <option value="superadmin">Superadmin</option>
+                    </select>
+                  </td>
+                  <td class="px-6 py-4">
+                    <select
+                      bind:value={user.status}
+                      on:change={() => updateStatus(user.username, user.status)}
+                      class="border border-gray-300 rounded px-1 py-1 text-sm w-28 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                    >
+                      <option value="enable">Enable</option>
+                      <option value="disable">Disable</option>
+                    </select>
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="flex items-center">
+                      <input
+                        type={user.showPassword ? 'text' : 'password'}
+                        value={user.password}
+                        readonly
+                        class="border border-gray-300 rounded px-2 py-1 text-sm bg-gray-100 cursor-not-allowed w-32"
+                      />
+                      <button
+                        on:click={() => {
+                          user.showPassword = !user.showPassword;
+                          users = [...users]; // Trigger reactivity
+                        }}
+                        class="ml-2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                        aria-label={user.showPassword ? 'Hide password' : 'Show password'}
+                      >
+                        <i class={user.showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'}></i>
+                      </button>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4">
+                    <button
+                      on:click={() => openModal('editUser', user)}
+                      class="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-green-500 ml-2"
+                    >
+                      Change Password
+                    </button>
+                    <button
+                      on:click={() => openModal('deleteUser', user)}
+                      class="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 ml-2"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              {/each}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Cards for Mobile Screens -->
+        <div class="sm:hidden space-y-4">
+          {#each filteredUsers as user}
+            <div class="bg-white shadow-md rounded-lg p-4 border border-gray-200">
+              <p class="text-sm text-gray-600 mb-2">
+                <strong>Username:</strong> {user.username}
+              </p>
+              <div class="mb-4 flex flex-wrap gap-4">
+                <div class="flex items-center">
+                  <label for="role-{user.username}" class="text-sm text-gray-600 mr-2"><strong>Role:</strong></label>
                   <select
+                    id="role-{user.username}"
                     bind:value={user.role}
                     on:change={() => updateRole(user.username, user.role)}
-                    class="border border-gray-300 rounded px-1 py-1 text-sm w-28 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    class="border border-gray-300 rounded px-2 py-1 text-sm w-32 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="user">User</option>
                     <option value="superadmin">Superadmin</option>
                   </select>
-                </td>
-                <td class="px-6 py-4">
+                </div>
+                <div class="flex items-center">
+                  <label for="status-{user.username}" class="text-sm text-gray-600 mr-2"><strong>Status:</strong></label>
                   <select
+                    id="status-{user.username}"
                     bind:value={user.status}
                     on:change={() => updateStatus(user.username, user.status)}
-                    class="border border-gray-300 rounded px-1 py-1 text-sm w-28 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                    class="border border-gray-300 rounded px-2 py-1 text-sm w-32 focus:outline-none focus:ring-2 focus:ring-yellow-500"
                   >
                     <option value="enable">Enable</option>
                     <option value="disable">Disable</option>
                   </select>
-                </td>
-                <td class="px-6 py-4">
-                  <div class="flex items-center">
-                    <input
-                      type={user.showPassword ? 'text' : 'password'}
-                      value={user.password}
-                      readonly
-                      class="border border-gray-300 rounded px-2 py-1 text-sm bg-gray-100 cursor-not-allowed w-32"
-                    />
-                    <button
-                      on:click={() => {
-                        user.showPassword = !user.showPassword;
-                        users = [...users]; // Trigger reactivity
-                      }}
-                      class="ml-2 text-gray-500 hover:text-gray-700 focus:outline-none"
-                      aria-label={user.showPassword ? 'Hide password' : 'Show password'}
-                    >
-                      <i class={user.showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'}></i>
-                    </button>
-                  </div>
-                </td>
-                <td class="px-6 py-4">
-                  <button
-                    on:click={() => openModal('editUser', user)}
-                    class="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-green-500 ml-2"
-                  >
-                    Change Password
-                  </button>
-                  <button
-                    on:click={() => openModal('deleteUser', user)}
-                    class="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 ml-2"
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            {/each}
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Cards for Mobile Screens -->
-      <div class="sm:hidden space-y-4">
-        {#each filteredUsers as user}
-          <div class="bg-white shadow-md rounded-lg p-4 border border-gray-200">
-            <p class="text-sm text-gray-600 mb-2">
-              <strong>Username:</strong> {user.username}
-            </p>
-            <div class="mb-4 flex flex-wrap gap-4">
-              <div class="flex items-center">
-                <label for="role-{user.username}" class="text-sm text-gray-600 mr-2"><strong>Role:</strong></label>
-                <select
-                  id="role-{user.username}"
-                  bind:value={user.role}
-                  on:change={() => updateRole(user.username, user.role)}
-                  class="border border-gray-300 rounded px-2 py-1 text-sm w-32 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="user">User</option>
-                  <option value="superadmin">Superadmin</option>
-                </select>
+                </div>
               </div>
-              <div class="flex items-center">
-                <label for="status-{user.username}" class="text-sm text-gray-600 mr-2"><strong>Status:</strong></label>
-                <select
-                  id="status-{user.username}"
-                  bind:value={user.status}
-                  on:change={() => updateStatus(user.username, user.status)}
-                  class="border border-gray-300 rounded px-2 py-1 text-sm w-32 focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                >
-                  <option value="enable">Enable</option>
-                  <option value="disable">Disable</option>
-                </select>
+              <div class="mb-4">
+                <label for="password-{user.username}" class="text-sm text-gray-600"><strong>Password:</strong></label>
+                <div class="flex items-center mt-1">
+                  <input
+                    id="password-{user.username}"
+                    type={user.showPassword ? 'text' : 'password'}
+                    value={user.password}
+                    readonly
+                    class="border border-gray-300 rounded px-2 py-1 text-sm bg-gray-100 cursor-not-allowed w-full"
+                  />
+                  <button
+                    on:click={() => {
+                      user.showPassword = !user.showPassword;
+                      users = [...users]; // Trigger reactivity
+                    }}
+                    class="ml-2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                    aria-label={user.showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    <i class={user.showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'}></i>
+                  </button>
+                </div>
               </div>
-            </div>
-            <div class="mb-4">
-              <label for="password-{user.username}" class="text-sm text-gray-600"><strong>Password:</strong></label>
-              <div class="flex items-center mt-1">
-                <input
-                  id="password-{user.username}"
-                  type={user.showPassword ? 'text' : 'password'}
-                  value={user.password}
-                  readonly
-                  class="border border-gray-300 rounded px-2 py-1 text-sm bg-gray-100 cursor-not-allowed w-full"
-                />
+              <div class="mt-4 flex flex-wrap gap-2">
                 <button
-                  on:click={() => {
-                    user.showPassword = !user.showPassword;
-                    users = [...users]; // Trigger reactivity
-                  }}
-                  class="ml-2 text-gray-500 hover:text-gray-700 focus:outline-none"
-                  aria-label={user.showPassword ? 'Hide password' : 'Show password'}
+                  on:click={() => openModal('editUser', user)}
+                  class="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-green-500"
                 >
-                  <i class={user.showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'}></i>
+                  Change Password
+                </button>
+                <button
+                  on:click={() => openModal('deleteUser', user)}
+                  class="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+                >
+                  Delete
                 </button>
               </div>
             </div>
-            <div class="mt-4 flex flex-wrap gap-2">
-              <button
-                on:click={() => openModal('editUser', user)}
-                class="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-green-500"
-              >
-                Change Password
-              </button>
-              <button
-                on:click={() => openModal('deleteUser', user)}
-                class="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        {/each}
-      </div>
-    {:else}
-      <p class="text-center text-gray-600">No users available at the moment.</p>
-    {/if}
-  </section>
+          {/each}
+        </div>
+      {:else}
+        <p class="text-center text-gray-600">No users available at the moment.</p>
+      {/if}
+    </section>
+  {/if}
 </main>
 
 {#if showModal}
