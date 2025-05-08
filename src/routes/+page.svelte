@@ -4,6 +4,7 @@
   let username = '';
   let password = '';
   let showPassword = false; // State to toggle password visibility
+  let isLoading = false;
 
   async function handleLogin() {
     if (!username.trim() || !password.trim()) {
@@ -11,6 +12,7 @@
       return;
     }
 
+    isLoading = true; // Start loading
     try {
       const response = await fetch('/api/login', {
         method: 'POST',
@@ -18,10 +20,22 @@
         body: JSON.stringify({ username, password }),
       });
 
+      isLoading = false; // Stop loading
       if (!response.ok) {
         const error = await response.json();
         console.error('Error response from server:', error);
-        alert(error.error || 'Login failed. Please check your credentials.');
+
+        // Handle specific error codes
+        switch (response.status) {
+          case 401:
+            alert('Unauthorized: Invalid username or password.');
+            break;
+          case 403:
+            alert('Forbidden: Your account is disabled or you lack access.');
+            break;
+          default:
+            alert(error.error || 'Login failed. Please try again.');
+        }
         return;
       }
 
@@ -36,8 +50,9 @@
       console.log('Login successful');
       await goto('/dashboard');
     } catch (error) {
+      isLoading = false; // Stop loading
       console.error('An error occurred:', error);
-      alert('An error occurred while logging in. Please try again.');
+      alert('An unexpected error occurred. Please try again later.');
     }
   }
 </script>
@@ -86,8 +101,9 @@
       <button
         type="submit"
         class="w-full px-3 py-2 text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 text-sm"
+        disabled={isLoading}
       >
-        Login
+        {isLoading ? 'Logging in...' : 'Login'}
       </button>
     </form>
   </div>

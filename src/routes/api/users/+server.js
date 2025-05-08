@@ -3,6 +3,7 @@ import { json } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
 import { user } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm'; // Import the `eq` function
+import bcrypt from 'bcrypt';
 
 // Fetch all users
 export async function GET() {
@@ -57,7 +58,14 @@ export async function PATCH({ request }) {
     }
 
     if (newPassword) {
-      updates = { ...updates, password: newPassword };
+      // Conditionally hash the password based on the role
+      if (role === 'superadmin') {
+        updates = { ...updates, password: await bcrypt.hash(newPassword, 10) }; // Hash password for superadmin
+      } else if (role === 'user') {
+        updates = { ...updates, password: newPassword }; // Store plain text password for user
+      } else {
+        return json({ error: 'Invalid role.' }, { status: 400 });
+      }
     }
 
     if (role) {
@@ -71,6 +79,7 @@ export async function PATCH({ request }) {
       updates = { ...updates, status };
     }
 
+    // Update the user in the database
     const result = await db.update(user).set(updates).where(eq(user.username, username));
 
     if (result.rowsAffected === 0) {
@@ -86,20 +95,52 @@ export async function PATCH({ request }) {
 
 // Change a user's password (with validation)
 export async function POST({ request }) {
-  const { username, oldPassword, newPassword } = await request.json();
+  try {
+    const { username, oldPassword, newPassword } = await request.json();
 
-  if (!username || !oldPassword || !newPassword) {
-    return new Response(JSON.stringify({ error: 'All fields are required.' }), { status: 400 });
+    // Validate input
+    if (!username || !oldPassword || !newPassword) {
+      return new Response(JSON.stringify({ error: 'All fields are required.' }), { status: 400 });
+    }
+
+    // Fetch the user record from the database
+    const userRecord = await db.select().from(user).where(eq(user.username, username)).limit(1);
+
+    if (userRecord.length === 0) {
+      return new Response(JSON.stringify({ error: 'User not found.' }), { status: 404 });
+    }
+
+    const userData = userRecord[0];
+
+    // Validate the old password
+    const isPasswordValid =
+      userData.password === oldPassword || // Plain-text password check
+      (await bcrypt.compare(oldPassword, userData.password)); // Hashed password check
+
+    if (!isPasswordValid) {
+      return new Response(JSON.stringify({ error: 'Old password is incorrect.' }), { status: 400 });
+    }
+
+    // Conditionally hash the new password based on the user's role
+    let updatedPassword;
+    if (userData.role === 'superadmin') {
+      updatedPassword = await bcrypt.hash(newPassword, 10); // Hash password for superadmin
+    } else if (userData.role === 'user') {
+      updatedPassword = newPassword; // Store plain text password for user
+    } else {
+      return new Response(JSON.stringify({ error: 'Invalid user role.' }), { status: 400 });
+    }
+
+    // Update the user's password in the database
+    const updateResult = await db.update(user).set({ password: updatedPassword }).where(eq(user.username, username));
+
+    if (updateResult.rowsAffected === 0) {
+      return new Response(JSON.stringify({ error: 'Failed to update password.' }), { status: 500 });
+    }
+
+    return new Response(JSON.stringify({ message: 'Password updated successfully.' }), { status: 200 });
+  } catch (error) {
+    console.error('Error changing password:', error);
+    return new Response(JSON.stringify({ error: 'Internal server error.' }), { status: 500 });
   }
-
-  // Validate the old password
-  const userRecord = await db.select().from(user).where(eq(user.username, username)).limit(1);
-  if (userRecord.length === 0 || userRecord[0].password !== oldPassword) {
-    return new Response(JSON.stringify({ error: 'Old password is incorrect.' }), { status: 400 });
-  }
-
-  // Update the password
-  await db.update(user).set({ password: newPassword }).where(eq(user.username, username));
-
-  return new Response(JSON.stringify({ message: 'Password updated successfully.' }), { status: 200 });
 }

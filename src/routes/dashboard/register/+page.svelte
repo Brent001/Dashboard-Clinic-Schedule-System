@@ -31,6 +31,8 @@
   let showNewPassword: boolean = false;
   let showConfirmPasswordModal: boolean = false;
 
+  let useEncryption: boolean = true; // Default to true for encryption
+
   function toggleDropdown() {
     showDropdown = !showDropdown;
   }
@@ -60,19 +62,22 @@
       return;
     }
 
-    // Show confirmation dialog
     const isConfirmed = window.confirm(
       `Are you sure you want to create an account for "${formUsername}" with the role "${formRole}"?`
     );
 
     if (!isConfirmed) {
-      return; // Exit if the user cancels
+      return;
     }
 
     const response = await fetch('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: formUsername, password, role: formRole }) // Use formRole here
+      body: JSON.stringify({
+        username: formUsername,
+        password,
+        role: formRole,
+      }),
     });
 
     const result = await response.json();
@@ -80,12 +85,10 @@
     if (response.ok) {
       successMessage = 'Account created successfully!';
       errorMessage = '';
-
-      // Clear all input fields
-      formUsername = ''; // Clear the username field
-      formRole = 'user'; // Reset the role to default
-      password = ''; // Clear the password field
-      confirmPassword = ''; // Clear the confirm password field
+      formUsername = '';
+      formRole = 'user';
+      password = '';
+      confirmPassword = '';
     } else {
       errorMessage = result.error || 'Failed to create account.';
       successMessage = '';

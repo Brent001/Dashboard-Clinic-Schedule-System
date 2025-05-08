@@ -6,9 +6,9 @@ import { eq } from 'drizzle-orm';
 export async function load({ cookies }) {
   const session = cookies.get('session');
 
-  // Show 404 if no session is found
+  // Show 401 if no session is found
   if (!session) {
-    throw error(404, 'Page not found'); // Return 404 for unauthenticated users
+    throw error(401, 'Unauthorized: No session found');
   }
 
   // Fetch the user's role from the database
@@ -18,16 +18,16 @@ export async function load({ cookies }) {
     .where(eq(user.username, session))
     .limit(1);
 
-  // Show 404 if the session is invalid
+  // Show 401 if the session is invalid
   if (userResult.length === 0) {
-    throw error(404, 'Page not found'); // Return 404 for invalid sessions
+    throw error(401, 'Unauthorized: Invalid session');
   }
 
   const { role } = userResult[0];
 
-  // Show 404 if the user is not a superadmin
+  // Show 403 if the user is not a superadmin
   if (role !== 'superadmin') {
-    throw error(404, 'Page not found'); // Return 404 for unauthorized users
+    throw error(403, 'Forbidden: Access denied');
   }
 
   // Return the username and role for use in the page

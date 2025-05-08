@@ -1,6 +1,7 @@
 import { db } from '$lib/server/db';
 import { user } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
+import bcrypt from 'bcrypt';
 
 export async function POST({ request }) {
   const { username, password, role } = await request.json();
@@ -19,8 +20,16 @@ export async function POST({ request }) {
     return new Response(JSON.stringify({ error: 'Username already exists.' }), { status: 400 });
   }
 
+  // Conditionally hash the password for superadmin, store plain text for user
+  let storedPassword;
+  if (role === 'superadmin') {
+    storedPassword = await bcrypt.hash(password, 10); // Hash password for superadmin
+  } else {
+    storedPassword = password; // Store plain text password for user (not recommended)
+  }
+
   // Insert the new user into the database
-  await db.insert(user).values({ username, password, role });
+  await db.insert(user).values({ username, password: storedPassword, role });
 
   return new Response(JSON.stringify({ message: 'Account created successfully.' }), { status: 201 });
 }
