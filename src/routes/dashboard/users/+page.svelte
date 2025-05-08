@@ -487,9 +487,9 @@
             id="username-input"
             type="text"
             bind:value={selectedUser.username}
-            class="w-full border border-gray-300 rounded px-2 py-1"
+            class="w-full border border-gray-300 rounded px-2 py-1 bg-gray-100 cursor-not-allowed"
             placeholder="Enter username"
-            required
+            readonly
           />
 
           <!-- Password Fields -->
