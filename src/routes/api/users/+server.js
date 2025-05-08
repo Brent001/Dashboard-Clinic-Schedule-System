@@ -42,8 +42,8 @@ export async function DELETE({ request }) {
 // Disable/Enable a user
 export async function PATCH({ request }) {
   try {
-    const { username, newUsername, status, role } = await request.json();
-    console.log('PATCH request received:', { username, newUsername, status, role }); // Debugging log
+    const { username, newUsername, newPassword, role, status } = await request.json();
+    console.log('PATCH request received:', { username, newUsername, newPassword, role, status });
 
     if (!username) {
       return json({ error: 'Username is required' }, { status: 400 });
@@ -53,23 +53,25 @@ export async function PATCH({ request }) {
     let updates = {};
 
     if (newUsername) {
-      updates = Object.assign(updates, { username: newUsername });
+      updates = { ...updates, username: newUsername };
+    }
+
+    if (newPassword) {
+      updates = { ...updates, password: newPassword };
+    }
+
+    if (role) {
+      updates = { ...updates, role };
     }
 
     if (status) {
       if (status !== 'enable' && status !== 'disable') {
         return json({ error: 'Invalid status value' }, { status: 400 });
       }
-      updates = Object.assign(updates, { status });
+      updates = { ...updates, status };
     }
 
-    if (role) {
-      updates = Object.assign(updates, { role });
-    }
-
-    // Update the user in the database
     const result = await db.update(user).set(updates).where(eq(user.username, username));
-    console.log('Database update result:', result); // Debugging log
 
     if (result.rowsAffected === 0) {
       return json({ error: 'User not found' }, { status: 404 });

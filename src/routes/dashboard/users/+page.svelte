@@ -4,6 +4,7 @@
   import Navbar from '$lib/components/Navbar.svelte';
 
   const SESSION_API = '/api/auth/session';
+  const LOGOUT_API = '/api/auth/logout';
 
   interface User {
     username: string;
@@ -97,32 +98,80 @@
     if (!selectedUser) return;
 
     try {
-      if (newPassword && newPassword !== confirmPassword) {
-        alert('New password and confirm password do not match.');
-        return;
-      }
+      if (modalType === 'editUser') {
+        const response = await fetch(`/api/users`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: selectedUser.username,
+            newUsername: selectedUsername || selectedUser.username,
+            newPassword: newPassword || undefined,
+            role: selectedUser.role,
+          }),
+        });
 
-      const response = await fetch(`/api/users`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: selectedUser.username,
-          oldPassword: oldPassword,
-          newPassword: newPassword,
-        }),
-      });
+        if (!response.ok) {
+          const errorData = await response.json();
+          alert(`Failed to edit user: ${errorData.error}`);
+        } else {
+          alert(`User "${selectedUser.username}" updated successfully`);
+          await fetchUsers(); // Refresh the user list
+        }
+      } else if (modalType === 'changePassword') {
+        if (!newPassword || newPassword !== confirmPassword) {
+          alert('New password and confirm password do not match.');
+          return;
+        }
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Failed to update password:', errorData);
-        alert(`Failed to update password: ${errorData.error}`);
-      } else {
-        alert('Password updated successfully');
-        await fetchUsers(); // Refresh the user list
+        const response = await fetch(`/api/users/${selectedUser.username}/password`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            oldPassword,
+            newPassword,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          alert(`Failed to update password: ${errorData.error}`);
+        } else {
+          alert('Password updated successfully');
+          await fetchUsers();
+        }
+      } else if (modalType === 'deleteUser') {
+        const response = await fetch(`/api/users`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: selectedUser.username }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          alert(`Failed to delete user: ${errorData.error}`);
+        } else {
+          alert(`User "${selectedUser.username}" deleted successfully`);
+          await fetchUsers();
+        }
+      } else if (modalType === 'disableUser') {
+        const newStatus = selectedUser.status === 'enable' ? 'disable' : 'enable';
+        const response = await fetch(`/api/users`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: selectedUser.username, status: newStatus }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          alert(`Failed to update status: ${errorData.error}`);
+        } else {
+          alert(`User "${selectedUser.username}" status updated to "${newStatus}"`);
+          await fetchUsers();
+        }
       }
     } catch (error) {
+      alert('An error occurred.');
       console.error('Error performing action:', error);
-      alert('An error occurred');
     } finally {
       closeModal();
     }
@@ -182,7 +231,7 @@
 
   async function logout() {
     try {
-      const response = await fetch('/api/auth/logout', {
+      const response = await fetch(LOGOUT_API, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });
