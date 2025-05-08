@@ -187,92 +187,107 @@
   });
 </script>
 
-<Navbar 
-  username={loggedInUsername} 
-  {role} 
-  {showDropdown} 
-  toggleDropdown={toggleDropdown} 
-  logout={logout} 
-></Navbar>
+<!-- Navbar Section -->
+<div class="w-full fixed top-0 left-0 z-50 bg-white shadow-md">
+  <Navbar
+    username={loggedInUsername}
+    {role}
+    {showDropdown}
+    toggleDropdown={toggleDropdown}
+    logout={logout}
+  />
+</div>
 
-<div class="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded-md">
-  <h1 class="text-2xl font-bold mb-4 text-center">Create Account</h1>
-  {#if errorMessage}
-    <div class="text-red-500 text-sm mb-4">{errorMessage}</div>
-  {/if}
-  {#if successMessage}
-    <div class="text-green-500 text-sm mb-4">{successMessage}</div>
-  {/if}
-  <form on:submit={handleSubmit}>
-    <div class="mb-4">
-      <label for="formUsername" class="block text-sm font-medium text-gray-700">Username</label>
-      <input
-        id="formUsername"
-        type="text"
-        bind:value={formUsername}
-        required
-        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
-      />
-    </div>
-    <div class="mb-4">
-      <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-      <div class="relative">
+<!-- Main Content Section -->
+<div class="pt-16 min-h-screen bg-gray-100">
+  <div class="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded-md sm:max-w-lg md:max-w-xl">
+    <h1 class="text-2xl font-bold mb-4 text-center">Create Account</h1>
+    {#if errorMessage}
+      <div class="text-red-500 text-sm mb-4">{errorMessage}</div>
+    {/if}
+    {#if successMessage}
+      <div class="text-green-500 text-sm mb-4">{successMessage}</div>
+    {/if}
+    <form on:submit={handleSubmit} class="space-y-4">
+      <!-- Username Field -->
+      <div>
+        <label for="formUsername" class="block text-sm font-medium text-gray-700">Username</label>
         <input
-          id="password"
-          type={showPassword ? 'text' : 'password'}
-          bind:value={password}
+          id="formUsername"
+          type="text"
+          bind:value={formUsername}
           required
-          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 pr-10"
+          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 text-sm"
         />
-        <button
-          type="button"
-          on:click={() => (showPassword = !showPassword)}
-          class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700 focus:outline-none"
-          aria-label={showPassword ? 'Hide password' : 'Show password'}
-        >
-          <i class={showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'}></i>
-        </button>
       </div>
-    </div>
-    <div class="mb-4">
-      <label for="confirmPassword" class="block text-sm font-medium text-gray-700">Confirm Password</label>
-      <div class="relative">
-        <input
-          id="confirmPassword"
-          type={showConfirmPassword ? 'text' : 'password'}
-          bind:value={confirmPassword}
+
+      <!-- Password Field -->
+      <div>
+        <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+        <div class="relative">
+          <input
+            id="password"
+            type={showPassword ? 'text' : 'password'}
+            bind:value={password}
+            required
+            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 text-sm pr-10"
+          />
+          <button
+            type="button"
+            on:click={() => (showPassword = !showPassword)}
+            class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700 focus:outline-none"
+            aria-label={showPassword ? 'Hide password' : 'Show password'}
+          >
+            <i class={showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'}></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Confirm Password Field -->
+      <div>
+        <label for="confirmPassword" class="block text-sm font-medium text-gray-700">Confirm Password</label>
+        <div class="relative">
+          <input
+            id="confirmPassword"
+            type={showConfirmPassword ? 'text' : 'password'}
+            bind:value={confirmPassword}
+            required
+            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 text-sm pr-10"
+          />
+          <button
+            type="button"
+            on:click={() => (showConfirmPassword = !showConfirmPassword)}
+            class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700 focus:outline-none"
+            aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+          >
+            <i class={showConfirmPassword ? 'fas fa-eye-slash' : 'fas fa-eye'}></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Role Dropdown -->
+      <div>
+        <label for="formRole" class="block text-sm font-medium text-gray-700">Role</label>
+        <select
+          id="formRole"
+          bind:value={formRole}
           required
-          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 pr-10"
-        />
-        <button
-          type="button"
-          on:click={() => (showConfirmPassword = !showConfirmPassword)}
-          class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700 focus:outline-none"
-          aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 text-sm"
         >
-          <i class={showConfirmPassword ? 'fas fa-eye-slash' : 'fas fa-eye'}></i>
-        </button>
+          <option value="user">User</option>
+          <option value="superadmin">Superadmin</option>
+        </select>
       </div>
-    </div>
-    <div class="mb-4">
-      <label for="formRole" class="block text-sm font-medium text-gray-700">Role</label>
-      <select
-        id="formRole"
-        bind:value={formRole}
-        required
-        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
+
+      <!-- Submit Button -->
+      <button
+        type="submit"
+        class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition duration-300 text-sm"
       >
-        <option value="user">User</option>
-        <option value="superadmin">Superadmin</option>
-      </select>
-    </div>
-    <button
-      type="submit"
-      class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition duration-300"
-    >
-      Create Account
-    </button>
-  </form>
+        Create Account
+      </button>
+    </form>
+  </div>
 </div>
 
 {#if modalType === 'changePassword'}

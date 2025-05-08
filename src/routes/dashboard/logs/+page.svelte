@@ -13,6 +13,8 @@
   }
 
   let logs: Log[] = [];
+  let filteredLogs: Log[] = []; // Filtered logs for search
+  let searchQuery: string = ''; // Search query
   let username: string = '';
   let role: string = ''; // Store the user's role
   let showDropdown: boolean = false;
@@ -33,6 +35,7 @@
       const logsResponse = await fetch('/api/logs');
       if (logsResponse.ok) {
         logs = await logsResponse.json();
+        filteredLogs = logs; // Initialize filtered logs
       } else {
         console.error('Failed to fetch logs');
       }
@@ -42,61 +45,14 @@
     }
   });
 
-  function detectOS(): string {
-    const userAgent = navigator.userAgent;
-
-    if (/Windows NT 10.0/i.test(userAgent)) {
-      return 'Windows 10';
-    }
-    if (/Windows NT 6.3/i.test(userAgent)) {
-      return 'Windows 8.1';
-    }
-    if (/Windows NT 6.2/i.test(userAgent)) {
-      return 'Windows 8';
-    }
-    if (/Windows NT 6.1/i.test(userAgent)) {
-      return 'Windows 7';
-    }
-    if (/Windows NT 6.0/i.test(userAgent)) {
-      return 'Windows Vista';
-    }
-    if (/Windows NT 5.1|Windows XP/i.test(userAgent)) {
-      return 'Windows XP';
-    }
-    if (/Macintosh|Mac OS X/i.test(userAgent)) {
-      return 'MacOS';
-    }
-    if (/Android/i.test(userAgent)) {
-      return 'Android';
-    }
-    if (/Linux/i.test(userAgent)) {
-      return 'Linux';
-    }
-    if (/iPhone|iPad|iPod/i.test(userAgent)) {
-      return 'iOS';
-    }
-    return 'Unknown';
-  }
-
-  async function logActivity() {
-    const ip = await fetch('https://api64.ipify.org?format=json')
-      .then((res) => res.json())
-      .then((data) => data.ip);
-
-    const os = detectOS();
-    const browser = navigator.userAgent;
-
-    await fetch('/api/logs', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        username: 'exampleUser',
-        ip,
-        os,
-        browser
-      })
-    });
-  }
+  // Filter logs based on the search query
+  $: filteredLogs = logs.filter(
+    (log) =>
+      log.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      log.ip.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      log.os.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      log.browser.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   function toggleDropdown() {
     showDropdown = !showDropdown;
@@ -126,7 +82,17 @@
       {role === 'superadmin' ? 'All User Login Logs' : 'My Login Logs'}
     </h1>
 
-    {#if logs.length > 0}
+    <!-- Search Box -->
+    <div class="mb-4">
+      <input
+        type="text"
+        bind:value={searchQuery}
+        placeholder="Search logs by username, IP, OS, or browser..."
+        class="w-full border border-gray-300 rounded px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+    </div>
+
+    {#if filteredLogs.length > 0}
       <!-- Table for Larger Screens -->
       <div class="hidden sm:block relative overflow-x-auto shadow-md sm:rounded-lg">
         <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
@@ -142,7 +108,7 @@
             </tr>
           </thead>
           <tbody>
-            {#each logs as log, i}
+            {#each filteredLogs as log, i}
               <tr class={i % 2 === 0 ? 'bg-gray-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-700'}>
                 <th
                   scope="row"
@@ -175,7 +141,7 @@
 
       <!-- Cards for Mobile Screens -->
       <div class="sm:hidden space-y-4">
-        {#each logs as log}
+        {#each filteredLogs as log}
           <div class="bg-white shadow-md rounded-lg p-4 border border-gray-200">
             <div class="flex justify-between items-center mb-2">
               <h2 class="text-lg font-semibold text-gray-800">Log #{log.id}</h2>

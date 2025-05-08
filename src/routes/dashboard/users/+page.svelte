@@ -31,6 +31,17 @@
   let showNewPassword: boolean = false; // For the "New Password" field
   let showConfirmPassword: boolean = false; // For the "Confirm Password" field
 
+  let searchQuery: string = ''; // Search by username
+  let searchRole: string = ''; // Filter by role
+  let searchStatus: string = ''; // Filter by status
+
+  // Computed filtered users based on search query, role, and status
+  $: filteredUsers = users.filter(user =>
+    user.username.toLowerCase().includes(searchQuery.toLowerCase()) &&
+    (searchRole ? user.role === searchRole : true) &&
+    (searchStatus ? user.status === searchStatus : true)
+  );
+
   // Fetch session data and users
   onMount(async () => {
     try {
@@ -270,7 +281,75 @@
   <section class="max-w-7xl mx-auto p-6">
     <h1 class="text-3xl font-bold text-gray-800 mb-6">Manage Users</h1>
 
-    {#if users.length > 0}
+    <!-- Search and Filter -->
+    <div class="mb-4">
+      <!-- Desktop Design -->
+      <div class="hidden sm:flex flex-wrap gap-4">
+        <!-- Search Box -->
+        <input
+          type="text"
+          bind:value={searchQuery}
+          placeholder="Search users by username..."
+          class="flex-1 min-w-0 border border-gray-300 rounded px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+
+        <!-- Filter by Role -->
+        <select
+          bind:value={searchRole}
+          class="w-40 border border-gray-300 rounded px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="">All Roles</option>
+          <option value="user">User</option>
+          <option value="superadmin">Superadmin</option>
+        </select>
+
+        <!-- Filter by Status -->
+        <select
+          bind:value={searchStatus}
+          class="w-40 border border-gray-300 rounded px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="">All Statuses</option>
+          <option value="enable">Enable</option>
+          <option value="disable">Disable</option>
+        </select>
+      </div>
+
+      <!-- Mobile Design -->
+      <div class="flex sm:hidden flex-col gap-2">
+        <!-- Search Box -->
+        <input
+          type="text"
+          bind:value={searchQuery}
+          placeholder="Search..."
+          class="w-full border border-gray-300 rounded px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+
+        <!-- Dropdowns Container -->
+        <div class="flex gap-2">
+          <!-- Filter by Role -->
+          <select
+            bind:value={searchRole}
+            class="flex-1 border border-gray-300 rounded px-4 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">All Roles</option>
+            <option value="user">User</option>
+            <option value="superadmin">Superadmin</option>
+          </select>
+
+          <!-- Filter by Status -->
+          <select
+            bind:value={searchStatus}
+            class="flex-1 border border-gray-300 rounded px-4 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">All Statuses</option>
+            <option value="enable">Enable</option>
+            <option value="disable">Disable</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    {#if filteredUsers.length > 0}
       <!-- Table for Larger Screens -->
       <div class="hidden sm:block relative overflow-x-auto shadow-md sm:rounded-lg">
         <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
@@ -284,7 +363,7 @@
             </tr>
           </thead>
           <tbody>
-            {#each users as user, i}
+            {#each filteredUsers as user, i}
               <tr class={i % 2 === 0 ? 'bg-gray-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-700'}>
                 <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{user.username}</td>
                 <td class="px-6 py-4">
@@ -349,7 +428,7 @@
 
       <!-- Cards for Mobile Screens -->
       <div class="sm:hidden space-y-4">
-        {#each users as user}
+        {#each filteredUsers as user}
           <div class="bg-white shadow-md rounded-lg p-4 border border-gray-200">
             <p class="text-sm text-gray-600 mb-2">
               <strong>Username:</strong> {user.username}
