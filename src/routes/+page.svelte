@@ -41,13 +41,23 @@
 
       const data = await response.json();
 
+      // Redirect to /setup if backend says so (for temp role)
+      if (data.redirect) {
+        await goto(data.redirect);
+        return;
+      }
+
       // Check if the user is disabled
       if (data.status === 'disable') {
         alert('Your account is disabled. Please contact the administrator.');
         return;
       }
 
-      console.log('Login successful');
+      // Only log if role is not 'temp'
+      if (data.role !== 'temp') {
+        console.log('Login successful');
+      }
+
       await goto('/dashboard');
     } catch (error) {
       isLoading = false; // Stop loading

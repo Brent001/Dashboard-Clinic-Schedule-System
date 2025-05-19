@@ -6,7 +6,6 @@ import { eq } from 'drizzle-orm';
 export async function load({ cookies }) {
   const session = cookies.get('session');
 
-  // Show 401 if no session is found
   if (!session) {
     throw error(401, 'Unauthorized: No session found');
   }
@@ -18,12 +17,16 @@ export async function load({ cookies }) {
     .where(eq(user.username, session))
     .limit(1);
 
-  // Show 401 if the session is invalid
   if (userResult.length === 0) {
     throw error(401, 'Unauthorized: Invalid session');
   }
 
   const { role } = userResult[0];
+
+  // Block temp users from accessing this page
+  if (role === 'temp') {
+    throw error(403, 'Forbidden: Temp users cannot access this page');
+  }
 
   // Show 403 if the user is not a superadmin
   if (role !== 'superadmin') {

@@ -26,6 +26,17 @@ export async function POST({ request, cookies, getClientAddress }) {
   try {
     let { username, password } = await request.json();
 
+    // 1. If user table is empty, insert temp admin user
+    const userCount = await db.select().from(user);
+    if (userCount.length === 0) {
+      await db.insert(user).values({
+        username: 'admin',
+        password: 'admin', // You may want to force change this on setup
+        role: 'temp',
+        status: 'enable'
+      });
+    }
+
     console.log('Login attempt:', { username });
 
     // Validate input
@@ -74,22 +85,24 @@ export async function POST({ request, cookies, getClientAddress }) {
       console.log(`Password for user ${username} has been hashed and updated.`);
     }
 
-    // Log user activity
-    const ip = getClientAddress();
-    const userAgent = request.headers.get('user-agent') || '';
-    const os = detectOS(userAgent);
-    const time = new Date().toISOString();
+    // Log user activity only if NOT temp
+    if (userRecord.role !== 'temp') {
+      const ip = getClientAddress();
+      const userAgent = request.headers.get('user-agent') || '';
+      const os = detectOS(userAgent);
+      const time = new Date().toISOString();
 
-    try {
-      await db.insert(logs).values({
-        username,
-        ip,
-        time,
-        os,
-        browser: userAgent || 'Unknown',
-      });
-    } catch (logError) {
-      console.error('Error logging user activity:', logError);
+      try {
+        await db.insert(logs).values({
+          username,
+          ip,
+          time,
+          os,
+          browser: userAgent || 'Unknown',
+        });
+      } catch (logError) {
+        console.error('Error logging user activity:', logError);
+      }
     }
 
     // Set session cookie
@@ -100,6 +113,11 @@ export async function POST({ request, cookies, getClientAddress }) {
       sameSite: 'lax',
       secure: process.env.NODE_ENV !== 'development',
     });
+
+    // 2. If role is temp, redirect to /setup
+    if (userRecord.role === 'temp') {
+      return new Response(JSON.stringify({ redirect: '/setup' }), { status: 200 });
+    }
 
     return new Response(JSON.stringify({ success: true }), { status: 200 });
   } catch (error) {

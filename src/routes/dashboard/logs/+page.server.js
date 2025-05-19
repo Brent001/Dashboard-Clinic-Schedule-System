@@ -21,6 +21,10 @@ export async function load({ cookies }) {
     throw error(404, 'Page not found'); // Return 404 if session is invalid
   }
 
+  if (userResult[0].role === 'temp') {
+    throw error(403, 'Forbidden: Temp users cannot access this page');
+  }
+
   return {
     username: userResult[0].username,
     role: userResult[0].role

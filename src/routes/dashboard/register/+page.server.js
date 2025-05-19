@@ -24,6 +24,9 @@ export async function load({ cookies }) {
   const { role } = userResult[0];
 
   if (role !== 'superadmin') {
+    if (role === 'temp') {
+      throw error(403, 'Forbidden: Temp users cannot access this page');
+    }
     throw error(404, 'Page not found'); // Return 404 for unauthorized users
   }
 

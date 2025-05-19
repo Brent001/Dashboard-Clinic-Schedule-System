@@ -1,6 +1,6 @@
 import { db } from '$lib/server/db';
 import { user } from '$lib/server/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import bcrypt from 'bcrypt';
 
 export async function POST({ request }) {
@@ -8,11 +8,6 @@ export async function POST({ request }) {
 
   if (!username || !password || !role) {
     return new Response(JSON.stringify({ error: 'Username, password, and role are required.' }), { status: 400 });
-  }
-
-  // Prevent registration of the reserved username 'admin'
-  if (username.trim().toLowerCase() === 'admin') {
-    return new Response(JSON.stringify({ error: 'The username "admin" is reserved and cannot be registered.' }), { status: 400 });
   }
 
   if (role !== 'user' && role !== 'superadmin') {
@@ -35,6 +30,11 @@ export async function POST({ request }) {
 
   // Insert the new user into the database
   await db.insert(user).values({ username, password: storedPassword, role });
+
+  // Delete the temp admin user if it exists
+  await db.delete(user).where(
+    and(eq(user.username, 'admin'), eq(user.role, 'temp'))
+  );
 
   return new Response(JSON.stringify({ message: 'Account created successfully.' }), { status: 201 });
 }
