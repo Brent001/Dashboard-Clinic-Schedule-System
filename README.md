@@ -83,7 +83,7 @@ Visit [http://localhost:5173](http://localhost:5173) (or the port shown in your 
 
 ---
 
-## Building and Publishing
+## Building
 
 - **Build the app:**
   ```bash
