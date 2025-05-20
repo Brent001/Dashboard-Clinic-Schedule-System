@@ -1,6 +1,14 @@
 # Clinic System Dashboard
 
+<img src="https://github.com/Brent001/Dashboard-Clinic-Schedule-System/raw/main/static/logo/logo.png" alt="Metro Dagupan Clinic Logo" width="120" style="margin-bottom: 1rem;" />
+
 A SvelteKit-based dashboard for Metro Dagupan Clinic.
+
+---
+
+> **Disclaimer:**  
+> This project is the intellectual property of Metro Dagupan College students, created as a final project for their 2nd year.  
+> **Do not distribute, copy, or use this code without explicit permission from the authors or Metro Dagupan College.**
 
 ---
 
@@ -10,9 +18,8 @@ A SvelteKit-based dashboard for Metro Dagupan Clinic.
 - [Environment Variables](#environment-variables)
 - [Database Setup](#database-setup)
 - [Running the App Locally](#running-the-app-locally)
-- [Deploying to Netlify](#deploying-to-netlify)
-- [Deploying to Vercel](#deploying-to-vercel)
 - [Building and Publishing](#building-and-publishing)
+- [Notes](#notes)
 
 ---
 
@@ -76,63 +83,6 @@ Visit [http://localhost:5173](http://localhost:5173) (or the port shown in your 
 
 ---
 
-## Deploying to Netlify
-
-1. **Install Netlify CLI (optional):**
-   ```bash
-   npm install -g netlify-cli
-   ```
-
-2. **Connect your repository on [Netlify](https://app.netlify.com/).**
-
-3. **Set environment variables** in the Netlify dashboard (`DATABASE_URL`, `DATABASE_AUTH_TOKEN`).
-
-4. **Build settings:**
-   - **Build command:** `npm run build`
-   - **Publish directory:** `.svelte-kit/output`
-
-5. **Adapter:**  
-   This project uses `@sveltejs/adapter-netlify` (see `package.json`).
-
-6. **Deploy!**
-
----
-
-## Deploying to Vercel
-
-1. **Install Vercel CLI (optional):**
-   ```bash
-   npm install -g vercel
-   ```
-
-2. **Connect your repository on [Vercel](https://vercel.com/).**
-
-3. **Set environment variables** in the Vercel dashboard (`DATABASE_URL`, `DATABASE_AUTH_TOKEN`).
-
-4. **Build settings:**
-   - **Framework Preset:** SvelteKit
-   - **Build command:** `npm run build`
-   - **Output directory:** `.svelte-kit/output`
-
-5. **Adapter:**  
-   You may need to install and configure `@sveltejs/adapter-vercel`:
-   ```bash
-   npm install -D @sveltejs/adapter-vercel
-   ```
-   Then update your `svelte.config.js`:
-   ```js
-   import adapter from '@sveltejs/adapter-vercel';
-   export default {
-     kit: {
-       adapter: adapter(),
-     }
-   };
-   ```
-
-6. **Deploy!**
-
----
-
 ## Building and Publishing
 
 - **Build the app:**
@@ -159,3 +109,5 @@ Visit [http://localhost:5173](http://localhost:5173) (or the port shown in your 
 - For more info, see [SvelteKit documentation](https://kit.svelte.dev/docs/deploy).
 
 ---
+
+**Created by Metro Dagupan College students — Final Project, 2nd Year**
