@@ -3,6 +3,7 @@
   import { goto } from '$app/navigation';
   import Navbar from '$lib/components/Navbar.svelte';
   import Loading from '$lib/components/Loading.svelte'; // Import the Loading component
+  import Footer from '$lib/components/Footer.svelte'; // <-- Import Footer component
 
   const SESSION_API = '/api/auth/session';
   const LOGOUT_API = '/api/auth/logout';
@@ -550,6 +551,8 @@
     </section>
   {/if}
 </main>
+
+<Footer /> <!-- Add Footer component here -->
 
 {#if showModal}
   <div class="fixed inset-0 flex items-center justify-center backdrop-blur-sm">

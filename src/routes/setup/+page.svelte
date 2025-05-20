@@ -181,7 +181,7 @@
     </form>
   </div>
   <div class="mt-8 text-center text-xs text-gray-400">
-    &copy; {new Date().getFullYear()} Clinic System Dashboard
+    &copy; {new Date().getFullYear()} Metro Dagupan Clinic System. All rights reserved.
   </div>
 </div>
 

@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation'; // Import goto for redirection
   import Navbar from '$lib/components/Navbar.svelte';
+  import Footer from '$lib/components/Footer.svelte';
 
   const SESSION_API = '/api/auth/session';
   const LOGOUT_API = '/api/auth/logout'; // Add logout API endpoint
@@ -352,6 +353,8 @@
     </div>
   </label>
 {/if}
+
+<Footer />
 
 <style>
   /* Add FontAwesome for icons */

@@ -2,6 +2,8 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import Navbar from '$lib/components/Navbar.svelte';
+  import Loading from '$lib/components/Loading.svelte';
+  import Footer from '$lib/components/Footer.svelte'; // <-- Add this line
 
   const SESSION_API = '/api/auth/session';
   const SCHEDULES_API = '/api/schedules';
@@ -22,9 +24,11 @@
   let showForm: boolean = false;
   let editingSchedule: Schedule | null = null; // Track the schedule being edited
   let showDropdown: boolean = false;
+  let loading = false; // <-- Add this line
 
   // Fetch schedules from the server
   async function fetchSchedules() {
+    loading = true; // <-- Add this line
     try {
       const response = await fetch(SCHEDULES_API);
       if (response.ok) {
@@ -41,6 +45,8 @@
       }
     } catch (error) {
       console.error('Error fetching schedules:', error);
+    } finally {
+      loading = false; // <-- Add this line
     }
   }
 
@@ -263,45 +269,53 @@
     {/if}
 
     <!-- Announcements List -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-      {#each schedules as schedule}
-        <div class="bg-white p-4 rounded-lg shadow-md">
-          <h3 class="text-lg font-semibold text-green-600">{schedule.purpose}</h3>
-          <p class="text-sm text-gray-600">{schedule.date} at {schedule.time}</p>
-          <p class="text-sm text-gray-500 italic mt-2" style="white-space: pre-wrap;">
-            {#if schedule.showFullMessage}
-              "{schedule.message}"
-            {:else}
-              "{schedule.message.slice(0, 100)}{schedule.message.length > 100 ? '...' : ''}"
+    {#if loading}
+      <div class="flex justify-center items-center min-h-[200px]">
+        <Loading size="w-12 h-12" />
+      </div>
+    {:else}
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        {#each schedules as schedule}
+          <div class="bg-white p-4 rounded-lg shadow-md">
+            <h3 class="text-lg font-semibold text-green-600">{schedule.purpose}</h3>
+            <p class="text-sm text-gray-600">{schedule.date} at {schedule.time}</p>
+            <p class="text-sm text-gray-500 italic mt-2" style="white-space: pre-wrap;">
+              {#if schedule.showFullMessage}
+                "{schedule.message}"
+              {:else}
+                "{schedule.message.slice(0, 100)}{schedule.message.length > 100 ? '...' : ''}"
+              {/if}
+            </p>
+            {#if schedule.message.length > 100}
+              <button
+                on:click={() => (schedule.showFullMessage = !schedule.showFullMessage)}
+                class="text-sm text-blue-500 hover:underline focus:outline-none"
+              >
+                {schedule.showFullMessage ? 'Read Less' : 'Read More'}
+              </button>
             {/if}
-          </p>
-          {#if schedule.message.length > 100}
-            <button
-              on:click={() => (schedule.showFullMessage = !schedule.showFullMessage)}
-              class="text-sm text-blue-500 hover:underline focus:outline-none"
-            >
-              {schedule.showFullMessage ? 'Read Less' : 'Read More'}
-            </button>
-          {/if}
-          <div class="flex justify-end space-x-2 mt-4">
-            <button
-              on:click={() => openEditModal(schedule)}
-              class="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none"
-            >
-              Edit
-            </button>
-            <button
-              on:click={() => deleteSchedule(schedule.id)}
-              class="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none"
-            >
-              Delete
-            </button>
+            <div class="flex justify-end space-x-2 mt-4">
+              <button
+                on:click={() => openEditModal(schedule)}
+                class="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none"
+              >
+                Edit
+              </button>
+              <button
+                on:click={() => deleteSchedule(schedule.id)}
+                class="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none"
+              >
+                Delete
+              </button>
+            </div>
           </div>
-        </div>
-      {/each}
-    </div>
+        {/each}
+      </div>
+    {/if}
   </div>
 </main>
+
+<Footer /> <!-- Add this line after </main> -->
 
 <style>
   main {

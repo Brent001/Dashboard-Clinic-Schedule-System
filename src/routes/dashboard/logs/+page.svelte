@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import Navbar from '$lib/components/Navbar.svelte';
   import Loading from '$lib/components/Loading.svelte'; // Import the Loading component
+  import Footer from '$lib/components/Footer.svelte'; // <-- Add this import
   import { goto } from '$app/navigation';
 
   interface Log {
@@ -180,6 +181,8 @@
     </section>
   {/if}
 </main>
+
+<Footer /> <!-- Add the Footer component here -->
 
 <style>
   main {

@@ -18,7 +18,7 @@
       <!-- Logo -->
       <div class="flex-shrink-0">
         <a href="/dashboard">
-          <img src="/logo/logo.png" alt="Clinic Dashboard Logo" class="h-8 w-auto" />
+          <img src="/logo/logo.png" alt="Clinic Dashboard Logo" class="h-10 w-10" />
         </a>
       </div>
 
