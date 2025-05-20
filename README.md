@@ -27,7 +27,7 @@ A SvelteKit-based dashboard for Metro Dagupan Clinic.
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/your-username/clinic-system-dashboard.git](https://github.com/Brent001/Dashboard-Clinic-Schedule-System.git
+   git clone https://github.com/Brent001/Dashboard-Clinic-Schedule-System.git
    cd Dashboard-Clinic-Schedule-System
    ```
 
