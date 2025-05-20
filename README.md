@@ -1,4 +1,4 @@
-# Clinic System Dashboard
+# Dashboard Clinic Schedule System
 
 <img src="https://github.com/Brent001/Dashboard-Clinic-Schedule-System/raw/main/static/logo/logo.png" alt="Metro Dagupan Clinic Logo" width="120" style="margin-bottom: 1rem;" />
 
