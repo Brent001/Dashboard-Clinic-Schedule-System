@@ -93,13 +93,6 @@ Visit [http://localhost:5173](http://localhost:5173) (or the port shown in your 
 - **Preview production build:**
   ```bash
   npm run preview
-  ```
-
-- **Publish library to npm:**
-  ```bash
-  npm publish
-  ```
-
 ---
 
 ## Notes
